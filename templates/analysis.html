@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Imagen</title>
+
+    <style>
+        .image-container {
+            position: relative;
+            display: inline-block;
+            margin-right: 20px; /* Espacio entre la imagen y los elementos de información */
+        }
+        .image-container img {
+            max-width: 100%;
+        }
+        .crosshair {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .color-box, .hue-box {
+            width: 50px;
+            height: 50px;
+            display: inline-block;
+            vertical-align: top;
+        }
+        .color-box {
+            margin-right: 10px; /* Espacio entre el cuadro de color y el de HUE */
+        }
+        .color-info, .hue-info {
+            display: inline-block;
+            vertical-align: top;
+            margin-left: 10px;
+        }
+        .histogram {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Análisis de Imagen</h1>
+   
+    <!-- Formulario para cargar una imagen -->
+    <form action="/" method="post" enctype="multipart/form-data">
+        <input type="file" name="imagen" accept=".jpg, .jpeg, .png">
+        <button type="submit">Analizar Imagen</button>
+    </form>
+
+
+    {% if filename %}
+
+        <div class="image-container">
+            <img src="data:image/jpeg;base64,{{ imagen_base64 }}" id="uploadedImage" alt="Uploaded Image" width="800">
+
+
+            <div class="crosshair" id="crosshair"></div>
+        </div>
+        <div class="color-box" id="colorBox"></div>
+        <div class="color-info" id="colorInfo"></div>
+        <div class="hue-box" id="hueBox"></div>
+        <div class="hue-info" id="hueInfo"></div>
+        <img src="data:image/png;base64,{{ palette }}" alt="paleta">
+
+        <!-- Mostrar las intensidades mínima y máxima -->
+        <p>Pureza negro: {{ intensidad_min }}%</p>
+        <p>Pureza blanco: {{ intensidad_max }}%</p>
+
+        <h2>Imagen Ordenada por HUE:</h2>
+    <img src="data:image/png;base64,{{ imagen_hue_base64 }}" alt="Imagen Ordenada por HUE">
+
+    <h2>Distribución HUES total (Sombras, Medios Tonos, Altas Luces):</h2>
+        <img src="data:image/png;base64,{{ hues_distribution_pie }}" alt="Distribución por Rango de Luminosidad">
+        
+    <h2>Value - HUE:</h2>
+        <img src="data:image/png;base64,{{ value_general }}" alt="Distribución por Rango de Luminosidad">
+    
+    <h2>Value - HUE:</h2>
+        <img src="data:image/png;base64,{{  saturacion_general }}" alt="Distribución por Rango de Luminosidad">
+       
+    <h2>Distribución por Rango de Luminosidad (Sombras, Medios Tonos, Altas Luces):</h2>
+        <img src="data:image/png;base64,{{ hues_distribution_combined }}" alt="Distribución por Rango de Luminosidad">
+    
+    <h2>Distribución por Rango de Luminosidad (Sombras, Medios Tonos, Altas Luces):</h2>
+        <img src="data:image/png;base64,{{ hues_distribution_combined2 }}" alt="Distribución por Rango de Luminosidad">
+
+    <h2>Negros (0%-10%):</h2>
+        <img src="data:image/png;base64,{{ huessombras }}" alt="Distribución por Rango de Luminosidad">
+        <img src="data:image/png;base64,{{ huespiessombras }}" alt="Distribución por Rango de Luminosidad">
+  
+
+    <h2>sombras (10%-40%):</h2>
+        <img src="data:image/png;base64,{{ huessombras2 }}" alt="Distribución por Rango de Luminosidad">
+    
+    <h2>Medios (40%-60%):</h2>
+        <img src="data:image/png;base64,{{ huesmedios }}" alt="Distribución por Rango de Luminosidad">
+        <img src="data:image/png;base64,{{ huesmediosbajospie }}" alt="Distribución por Rango de Luminosidad">
+        <img src="data:image/png;base64,{{ huesmediosaltospie }}" alt="Distribución por Rango de Luminosidad">
+        
+    <h2>Altas (60%-90%):</h2>
+        <img src="data:image/png;base64,{{ huesaltas }}" alt="Distribución por Rango de Luminosidad">
+
+    <h2>Blancos (90%-100%):</h2>
+        <img src="data:image/png;base64,{{ huesblancos }}" alt="Distribución por Rango de Luminosidad">
+        <img src="data:image/png;base64,{{ huesaltaspie }}" alt="Distribución por Rango de Luminosidad">
+        
+    {% endif %}
+
+     
+  
+    
+    
+
+    <script>
+        document.getElementById('uploadedImage').addEventListener('mousemove', function(event) {
+            updateValues(event);
+        });
+    
+        function updateValues(event) {
+            var rect = event.target.getBoundingClientRect();
+            var x = event.clientX - rect.left;
+            var y = event.clientY - rect.top;
+    
+            var crosshair = document.getElementById('crosshair');
+            crosshair.style.left = (x - 5) + 'px';
+            crosshair.style.top = (y - 5) + 'px';
+    
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = event.target.width;
+            canvas.height = event.target.height;
+            context.drawImage(event.target, 0, 0, event.target.width, event.target.height);
+            var pixel = context.getImageData(x, y, 1, 1).data;
+            var r = pixel[0];
+            var g = pixel[1];
+            var b = pixel[2];
+            
+            var color = 'rgb(' + r + ',' + g + ',' + b + ')';
+            var colorBox = document.getElementById('colorBox');
+            colorBox.style.backgroundColor = color;
+            
+            var hexColor = rgbToHex(r, g, b);
+            var colorInfo = document.getElementById('colorInfo');
+            colorInfo.innerHTML = '<p>Red: ' + Math.round(r / 2.55) + '%</p>' +
+                                  '<p>Green: ' + Math.round(g / 2.55) + '%</p>' +
+                                  '<p>Blue: ' + Math.round(b / 2.55) + '%</p>';
+    
+            var hsv = rgbToHsv(r, g, b);
+            var hueBox = document.getElementById('hueBox');
+            hueBox.style.backgroundColor = 'hsl(' + hsv.h + ', 100%, 50%)';
+            hueBox.title = 'Hue: ' + hsv.h.toFixed(2) + '°, Saturation: ' + (hsv.s * 100).toFixed(2) + '%, Value: ' + (hsv.v * 100).toFixed(2) + '%';
+    
+            var hueInfo = document.getElementById('hueInfo');
+            hueInfo.innerHTML = '<p>Hue: ' + hsv.h.toFixed(2) + '°</p>' +
+                               '<p>Saturation: ' + (hsv.s * 100).toFixed(2) + '%</p>' +
+                               '<p>Value: ' + (hsv.v * 100).toFixed(2) + '%</p>';
+    
+            // Actualizar histograma y sombrear la región seleccionada
+            updateHistogram(x, y);
+        }
+    
+        function updateHistogram(x, y) {
+            var canvas = document.getElementById('histogramCanvas');
+            var ctx = canvas.getContext('2d');
+            var img = new Image();
+            img.onload = function() {
+                ctx.drawImage(img, 0, 0);
+                var pixelData = ctx.getImageData(x, y, 1, 1).data;
+                var grayscaleValue = Math.round(0.299 * pixelData[0] + 0.587 * pixelData[1] + 0.114 * pixelData[2]);
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)'; // Color rojo semitransparente
+                ctx.fillRect(grayscaleValue, 0, 1, canvas.height); // Sombrar la columna correspondiente
+            };
+            img.src = '{{ url_for("static", filename="uploads/" ~ filename) }}';
+        }
+    
+        // Funciones rgbToHex y rgbToHsv aquí
+        function rgbToHex(r, g, b) {
+            return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+        }
+    
+        function rgbToHsv(r, g, b) {
+            r /= 255;
+            g /= 255;
+            b /= 255;
+    
+            var max = Math.max(r, g, b);
+            var min = Math.min(r, g, b);
+            var h, s, v = max;
+    
+            var d = max - min;
+            s = max == 0 ? 0 : d / max;
+    
+            if (max == min) {
+                h = 0; // achromatic
+            } else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+    
+            return {
+                h: h * 360,
+                s: s,
+                v: v
+            };
+        }
+
+        // Centrar el crosshair al cargar la imagen
+        window.addEventListener('load', function() {
+            var image = document.getElementById('uploadedImage');
+            var rect = image.getBoundingClientRect();
+            var centerX = rect.left + image.width / 2;
+            var centerY = rect.top + image.height / 2;
+            var crosshair = document.getElementById('crosshair');
+            crosshair.style.left = (centerX - 5) + 'px'; // Ajustar 5px para centrar el crosshair
+            crosshair.style.top = (centerY - 5) + 'px'; // Ajustar 5px para centrar el crosshair
+
+            // Actualizar valores al cargar la página
+            updateValues({
+                target: image,
+                clientX: centerX,
+                clientY: centerY
+            });
+        });
+    </script>
+</body>
+</html>

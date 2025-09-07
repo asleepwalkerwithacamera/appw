@@ -1,0 +1,1883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Colores - APP COLORES</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --dark-color: #1e293b;
+            --light-color: #f8fafc;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: linear-gradient(135deg, var(--light-color) 0%, #e2e8f0 100%);
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .hero-header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .hero-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.1"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.1"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+        }
+        
+        .hero-title {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            background: linear-gradient(45deg, #ffffff, #f1f5f9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .analysis-card {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            overflow: hidden;
+            margin-bottom: 2rem;
+        }
+        
+        .analysis-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-header {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 1.5rem 2rem;
+            text-align: center;
+        }
+        
+        .card-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        
+        .card-body {
+            padding: 2rem;
+        }
+        
+        .image-container {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 2rem;
+        }
+        
+        .main-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            cursor: crosshair;
+            position: relative;
+        }
+        
+        .crosshair {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid #ff0000;
+            border-radius: 50%;
+            pointer-events: none;
+            display: none;
+            z-index: 1000;
+            box-shadow: 0 0 10px rgba(255, 0, 0, 0.5);
+        }
+        
+        .color-info-panel {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            min-width: 200px;
+            z-index: 100;
+        }
+        
+        .color-box, .hue-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            border: 2px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 0 auto;
+        }
+        
+        .color-info {
+            text-align: center;
+        }
+        
+        .color-info h4 {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+        
+        .color-info p {
+            margin: 0.25rem 0;
+            color: #64748b;
+            font-size: 0.8rem;
+            line-height: 1.3;
+        }
+        
+        .intensity-section {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+        
+        .gradient-bar {
+            position: relative;
+            height: 25px;
+            background: linear-gradient(to right, #000000 0%, #ffffff 100%);
+            border-radius: 15px;
+            margin: 1rem 0;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+        
+        .intensity-point {
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background-color: var(--danger-color);
+            border: 3px solid white;
+            border-radius: 50%;
+            transform: translateY(-50%);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+        
+        .cluster-controls {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .cluster-controls label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-right: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .cluster-controls input[type="number"] {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            margin-right: 1rem;
+            width: 100px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+        
+        .cluster-controls input[type="number"]:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+            outline: none;
+        }
+        
+        .btn-update {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-update:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+            color: white;
+        }
+        
+        .btn-update:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading-indicator {
+            margin-top: 1rem;
+            color: var(--primary-color);
+            font-style: italic;
+            font-weight: 500;
+        }
+        
+        .chart-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .chart-container img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hue-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .hue-table th {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            font-weight: 600;
+            padding: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+        
+        .hue-table td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+            font-size: 0.9rem;
+        }
+        
+        .hue-table tbody tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .color-name {
+            font-weight: 700;
+            text-transform: capitalize;
+        }
+        
+        .color-row.rojo .color-name { color: #dc3545; }
+        .color-row.naranja .color-name { color: #fd7e14; }
+        .color-row.amarillo .color-name { color: #ffc107; }
+        .color-row.verde .color-name { color: #28a745; }
+        .color-row.magenta .color-name { color: #e83e8c; }
+        .color-row.azul .color-name { color: #007bff; }
+        
+        /* Estilos para las barras tipo Lightroom */
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 200px;
+        }
+        
+        .slider-value {
+            font-weight: 600;
+            color: var(--dark-color);
+            min-width: 30px;
+            text-align: right;
+        }
+        
+        .slider-track {
+            position: relative;
+            flex: 1;
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+        
+        .slider-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .slider-thumb {
+            position: absolute;
+            top: 50%;
+            width: 16px;
+            height: 16px;
+            background: white;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .slider-thumb:hover {
+            transform: translate(-50%, -50%) scale(1.2);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Tooltip para información de HUE */
+        .color-row {
+            position: relative;
+            cursor: help;
+        }
+        
+        .color-row::after {
+            content: attr(data-hue-range) " | Promedio: " attr(data-hue-avg);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        
+        .color-row:hover::after {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(-5px);
+        }
+        
+        .image-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .image-item {
+            text-align: center;
+        }
+        
+        .image-item h4 {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .image-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-back {
+            background: linear-gradient(45deg, var(--accent-color), #0891b2);
+            border: none;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 50px;
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+            margin: 2rem auto;
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(6, 182, 212, 0.4);
+            color: white;
+            text-decoration: none;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+        }
+        
+        .stat-card h4 {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+        
+        /* Estilos para Vista a Pantalla Completa */
+        .fullscreen-analysis {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e2e8f0;
+            margin: 2rem 0;
+            overflow: hidden;
+        }
+        
+        .fullscreen-header {
+            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .fullscreen-header h2 {
+            margin: 0;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .fullscreen-header p {
+            margin: 0.5rem 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .analysis-info {
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            padding: 1rem;
+            margin-top: 1rem;
+            display: flex;
+            align-items: center;
+            color: white;
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+        
+        .analysis-info i {
+            font-size: 1.1rem;
+            margin-right: 0.5rem;
+        }
+        
+        /* Navegación Lateral */
+        .sidebar-navigation {
+            background: #f8fafc;
+            border-right: 1px solid #e2e8f0;
+            width: 280px;
+            float: left;
+            height: 600px;
+            overflow-y: auto;
+        }
+        
+        .nav-item {
+            padding: 1rem 1.5rem;
+            cursor: pointer;
+            border-bottom: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            color: #64748b;
+        }
+        
+        .nav-item:hover {
+            background: #e2e8f0;
+            color: var(--primary-color);
+        }
+        
+        .nav-item.active {
+            background: var(--primary-color);
+            color: white;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .nav-item i {
+            margin-right: 0.75rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Contenido Principal */
+        .fullscreen-content {
+            margin-left: 280px;
+            min-height: 600px;
+            background: white;
+        }
+        
+        .content-section {
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 3rem;
+        }
+        
+        .content-section:last-child {
+            border-bottom: none;
+        }
+        
+        .content-section {
+            display: none;
+            padding: 3rem 2rem;
+        }
+        
+        .content-section.active {
+            display: block;
+        }
+        
+        .fullscreen-image-container {
+            text-align: center;
+        }
+        
+        .fullscreen-image-container h3 {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin-bottom: 2rem;
+            font-size: 1.5rem;
+        }
+        
+        .fullscreen-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            margin: 1rem 0;
+        }
+        
+        .detailed-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+        
+        .detail-item {
+            text-align: center;
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .detail-item h4 {
+            color: var(--dark-color);
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .detail-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Estilos para pares de gráficos */
+        .chart-pair {
+            display: flex;
+            flex-direction: column;
+            gap: 3rem;
+            margin: 3rem 0;
+        }
+        
+        .chart-item {
+            text-align: center;
+            background: #f8fafc;
+            border-radius: 15px;
+            padding: 2rem;
+            border: 1px solid #e2e8f0;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+        
+        .chart-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .chart-item h4 {
+            color: var(--dark-color);
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            font-size: 1.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .chart-item img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            margin: 0 auto;
+            display: block;
+            transition: transform 0.3s ease;
+        }
+        
+        .chart-item img:hover {
+            transform: scale(1.02);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Estilos específicos para gráficos de sectores */
+        .chart-item h4 i.fa-chart-pie {
+            color: var(--accent-color);
+        }
+        
+        .chart-item h4 i.fa-chart-bar {
+            color: var(--primary-color);
+        }
+        
+        /* Responsive para móviles */
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .main-container {
+                padding: 1rem;
+            }
+            
+            .image-container {
+                text-align: center;
+            }
+            
+            .color-info-panel {
+                position: static;
+                margin: 1rem auto;
+                max-width: 100%;
+                padding: 1rem;
+                background: rgba(255, 255, 255, 0.95);
+                backdrop-filter: blur(10px);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 1rem;
+                align-items: center;
+            }
+            
+            .color-box, .hue-box {
+                width: 35px;
+                height: 35px;
+                margin: 0 auto;
+            }
+            
+            .color-info h4 {
+                font-size: 0.75rem;
+                margin-bottom: 0.25rem;
+            }
+            
+            .color-info p {
+                font-size: 0.65rem;
+                margin: 0.1rem 0;
+                line-height: 1.2;
+            }
+            
+            .cluster-controls {
+                padding: 1.5rem;
+            }
+            
+            .cluster-controls input[type="number"] {
+                width: 80px;
+                margin-bottom: 1rem;
+            }
+            
+            /* Navegación lateral responsive */
+            .sidebar-navigation {
+                width: 100%;
+                float: none;
+                height: auto;
+                border-right: none;
+                border-bottom: 1px solid #e2e8f0;
+            }
+            
+            .fullscreen-content {
+                margin-left: 0;
+            }
+            
+            .detailed-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .chart-pair {
+                gap: 1.5rem;
+            }
+            
+            /* Ajustes para la tabla de HUE en móviles */
+            .hue-table {
+                font-size: 0.8rem;
+            }
+            
+            .hue-table th,
+            .hue-table td {
+                padding: 0.75rem 0.5rem;
+            }
+            
+            .slider-container {
+                min-width: 150px;
+                gap: 0.5rem;
+            }
+            
+            .slider-value {
+                min-width: 25px;
+                font-size: 0.8rem;
+            }
+            
+            .slider-track {
+                height: 6px;
+            }
+            
+            .slider-thumb {
+                width: 12px;
+                height: 12px;
+            }
+        }
+        
+        /* Estilos para pantallas muy pequeñas */
+        @media (max-width: 480px) {
+            .color-info-panel {
+                grid-template-columns: 1fr;
+                gap: 0.5rem;
+                padding: 0.75rem;
+            }
+            
+            .color-box, .hue-box {
+                width: 30px;
+                height: 30px;
+            }
+            
+            .color-info h4 {
+                font-size: 0.7rem;
+            }
+            
+            .color-info p {
+                font-size: 0.6rem;
+            }
+            
+            .main-container {
+                padding: 0.5rem;
+            }
+            
+            .card-body {
+                padding: 1rem;
+            }
+            
+            /* Tabla de HUE en pantallas muy pequeñas */
+            .hue-table {
+                font-size: 0.7rem;
+            }
+            
+            .hue-table th,
+            .hue-table td {
+                padding: 0.5rem 0.25rem;
+            }
+            
+            .slider-container {
+                min-width: 120px;
+                gap: 0.25rem;
+            }
+            
+            .slider-value {
+                min-width: 20px;
+                font-size: 0.7rem;
+            }
+            
+            .slider-track {
+                height: 5px;
+            }
+            
+            .slider-thumb {
+                width: 10px;
+                height: 10px;
+            }
+        }
+        
+        /* Estilos para la sección de Datos de Equipo */
+        .equipment-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            background: #f8fafc;
+            border-radius: 10px;
+            border-left: 4px solid var(--primary-color);
+            transition: all 0.3s ease;
+        }
+        
+        .info-item:hover {
+            background: #f1f5f9;
+            transform: translateX(5px);
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-right: 0.5rem;
+            min-width: 120px;
+        }
+        
+        .info-value {
+            color: #64748b;
+            font-weight: 500;
+        }
+        
+        .info-item i {
+            margin-right: 0.75rem;
+            font-size: 1.1rem;
+            width: 20px;
+            text-align: center;
+        }
+        
+        /* Estilos para Palette Extractor */
+        .dominant-color-section {
+            text-align: center;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .dominant-color-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2rem;
+            margin-top: 1rem;
+        }
+        
+        .color-square {
+            width: 80px;
+            height: 80px;
+            border-radius: 15px;
+            border: 3px solid white;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transition: all 0.3s ease;
+        }
+        
+        .color-square:hover {
+            transform: scale(1.1);
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.2);
+        }
+        
+        .color-info-details {
+            text-align: left;
+        }
+        
+        .color-info-details p {
+            margin: 0.5rem 0;
+            color: var(--dark-color);
+            font-size: 1rem;
+        }
+        
+        .color-info-details strong {
+            color: var(--primary-color);
+        }
+        
+        .palette-controls {
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            border-radius: 15px;
+            padding: 2rem;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .palette-controls label {
+            font-weight: 600;
+            color: var(--dark-color);
+            margin-right: 1rem;
+            font-size: 1.1rem;
+        }
+        
+        .palette-controls select {
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+        
+        .palette-controls select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.25);
+            outline: none;
+        }
+        
+        .secondary-colors-section {
+            text-align: center;
+        }
+        
+        .secondary-colors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        
+        .secondary-color-item {
+            text-align: center;
+            padding: 1rem;
+            background: white;
+            border-radius: 15px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .secondary-color-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .secondary-color-square {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            border: 2px solid white;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            margin: 0 auto 0.5rem auto;
+        }
+        
+        .secondary-color-info {
+            font-size: 0.9rem;
+            color: var(--dark-color);
+        }
+        
+        .secondary-color-info .color-hex {
+            font-weight: 700;
+            margin-bottom: 0.25rem;
+        }
+        
+        .secondary-color-info .color-percentage {
+            color: #64748b;
+            font-size: 0.8rem;
+        }
+        
+        .palette-visualizations {
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .dominant-color-display {
+                flex-direction: column;
+                gap: 1rem;
+            }
+            
+            .color-square {
+                width: 60px;
+                height: 60px;
+            }
+            
+            .secondary-colors-grid {
+                grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+                gap: 0.75rem;
+            }
+            
+            .secondary-color-square {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .palette-controls {
+                padding: 1.5rem;
+            }
+            
+            .palette-controls select {
+                margin-bottom: 1rem;
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .info-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.5rem;
+            }
+            
+            .info-label {
+                min-width: auto;
+                margin-right: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hero Header -->
+    <header class="hero-header">
+        <div class="hero-content">
+            <h1 class="hero-title">Análisis de Colores</h1>
+            <p class="hero-subtitle">Descubre la paleta oculta en tu imagen con análisis inteligente</p>
+        </div>
+    </header>
+
+    <div class="main-container">
+        <!-- Imagen Principal -->
+        <div class="analysis-card">
+            <div class="card-header">
+                <h3><i class="fas fa-image me-2"></i>Imagen Analizada</h3>
+            </div>
+            <div class="card-body">
+                <div class="image-container">
+                    <img id="uploadedImage" class="main-image" src="{{ url_for('uploaded_file', filename=image_path.split('/')[-1]) }}" alt="Imagen Cargada">
+                    <div class="crosshair" id="crosshair"></div>
+                </div>
+                
+                <!-- Panel de Información de Color -->
+                <div class="color-info-panel">
+                    <div class="color-box" id="colorBox"></div>
+                    <div class="color-info" id="colorInfo">
+                        <h4>Color RGB</h4>
+                        <p>Haz clic en la imagen para analizar</p>
+                    </div>
+                    <div class="hue-box" id="hueBox"></div>
+                    <div class="color-info" id="hueInfo">
+                        <h4>Valores HSV</h4>
+                        <p>Haz clic en la imagen para analizar</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análisis de Intensidad -->
+        <div class="analysis-card">
+            <div class="card-header">
+                <h3><i class="fas fa-adjust me-2"></i>Análisis de Intensidad</h3>
+            </div>
+            <div class="card-body">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h4>Punto más oscuro</h4>
+                        <div class="stat-value">{{ min_intensity }}%</div>
+                        <div class="stat-label">Intensidad mínima</div>
+                    </div>
+                    <div class="stat-card">
+                        <h4>Punto más claro</h4>
+                        <div class="stat-value">{{ max_intensity }}%</div>
+                        <div class="stat-label">Intensidad máxima</div>
+                    </div>
+                </div>
+                
+                <div class="intensity-section">
+                    <h4><i class="fas fa-circle me-2"></i>Distribución de Intensidad</h4>
+                    <div class="gradient-bar">
+                        <div class="intensity-point" style="left: {{ min_intensity }}%;" title="Punto más oscuro: {{ min_intensity }}%"></div>
+                    </div>
+                    <p class="text-center text-muted">El punto rojo indica la intensidad del píxel más oscuro en la imagen</p>
+                    
+                    <div class="gradient-bar">
+                        <div class="intensity-point" style="left: {{ max_intensity }}%;" title="Punto más claro: {{ max_intensity }}%"></div>
+                    </div>
+                    <p class="text-center text-muted">El punto rojo indica la intensidad del píxel más claro en la imagen</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Controles de Clusters -->
+        <div class="cluster-controls">
+            <h3><i class="fas fa-chart-pie me-2"></i>Ajustar Análisis de Clusters</h3>
+            <div class="d-flex justify-content-center align-items-center flex-wrap">
+                <label for="num_clusters">Número de clusters:</label>
+                <input type="number" id="num_clusters" name="num_clusters" min="1" max="10" value="{{ num_clusters or 2 }}">
+                <button type="button" id="update-clusters-btn" class="btn-update">
+                    <i class="fas fa-sync-alt me-2"></i>Actualizar Análisis
+                </button>
+            </div>
+            <div id="loading-indicator" class="loading-indicator" style="display: none;">
+                <i class="fas fa-spinner fa-spin me-2"></i>Actualizando análisis...
+            </div>
+        </div>
+
+        <!-- Gráfico de Distribución de HUE -->
+        <div class="analysis-card">
+            <div class="card-header">
+                <h3><i class="fas fa-chart-bar me-2"></i>Distribución de HUE con K-means</h3>
+            </div>
+            <div class="card-body">
+                <div class="chart-container">
+                    <img id="kmeans-chart" src="data:image/png;base64,{{ img_str }}" alt="Gráfico de Distribución de HUE">
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla de Rangos de HUE -->
+        <div class="analysis-card">
+            <div class="card-header">
+                <h3><i class="fas fa-palette me-2"></i>Análisis de Colores por Rango de HUE</h3>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="hue-table">
+                        <thead>
+                            <tr>
+                                <th>Color</th>
+                                <th>Saturación</th>
+                                <th>Luminosidad</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rango in rangos_hue %}
+                            <tr class="color-row {{ rango.color }}" 
+                                data-hue-range="{{ rango.hue_min }}° - {{ rango.hue_max }}°"
+                                data-hue-avg="{{ rango.hue_promedio }}°">
+                                <td class="color-name">{{ rango.color|title }}</td>
+                                <td>
+                                    <div class="slider-container">
+                                        <div class="slider-value">{{ rango.saturacion_promedio }}</div>
+                                        <div class="slider-track">
+                                            <div class="slider-fill" style="width: {{ rango.saturacion_promedio }}%"></div>
+                                            <div class="slider-thumb" style="left: {{ rango.saturacion_promedio }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="slider-container">
+                                        <div class="slider-value">{{ rango.luminancia_promedio }}</div>
+                                        <div class="slider-track">
+                                            <div class="slider-fill" style="width: {{ rango.luminancia_promedio }}%"></div>
+                                            <div class="slider-thumb" style="left: {{ rango.luminancia_promedio }}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rueda de Colores -->
+        <div class="analysis-card">
+            <div class="card-header">
+                <h3><i class="fas fa-circle-notch me-2"></i>Rueda de Colores</h3>
+            </div>
+            <div class="card-body">
+                <div class="image-grid">
+                    <div class="image-item">
+                        <h4>Rueda Original</h4>
+                        <img src="{{ url_for('static', filename='uploads/js/wheel.png') }}" alt="Rueda de Colores Original">
+                    </div>
+                    <div class="image-item">
+                        <h4>Rueda con Marcadores</h4>
+                        <img id="modified-wheel" src="{{ url_for('static', filename='uploads/modified_wheel.png') }}" alt="Rueda con Marcadores de HUE">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Análisis por Luminosidad - Vista a Pantalla Completa -->
+        <div class="fullscreen-analysis">
+            <div class="fullscreen-header">
+                <h2><i class="fas fa-lightbulb me-2"></i>Análisis por Rangos de Luminosidad</h2>
+                <p class="text-muted">Visualización completa de todos los rangos de luminosidad</p>
+                <div class="analysis-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <span>Haz clic en cada rango para ver el análisis detallado con gráficos de distribución de HUE y colores dominantes</span>
+                </div>
+            </div>
+            
+            <!-- Navegación Lateral -->
+            <div class="sidebar-navigation">
+                <div class="nav-item active" data-target="combined">
+                    <i class="fas fa-chart-bar me-2"></i>
+                    <span>Vista General</span>
+                </div>
+        
+                <div class="nav-item" data-target="negros">
+                    <i class="fas fa-circle me-2"></i>
+                    <span>Negros (0-10%)</span>
+                </div>
+                <div class="nav-item" data-target="sombras">
+                    <i class="fas fa-adjust me-2"></i>
+                    <span>Sombras (11-40%)</span>
+                </div>
+                <div class="nav-item" data-target="medios">
+                    <i class="fas fa-circle-half-stroke me-2"></i>
+                    <span>Medios Tonos (41-60%)</span>
+                </div>
+                <div class="nav-item" data-target="luces">
+                    <i class="fas fa-sun me-2"></i>
+                    <span>Altas Luces (61-89%)</span>
+                </div>
+                <div class="nav-item" data-target="blancos">
+                    <i class="fas fa-circle me-2"></i>
+                    <span>Blancos (90-100%)</span>
+                </div>
+            </div>
+            
+            <!-- Contenido Principal -->
+            <div class="fullscreen-content">
+                <!-- Vista General -->
+                <div class="content-section active" id="combined">
+                    <div class="fullscreen-image-container">
+                        <h3>Vista General de Sombras y Rangos</h3>
+                        <img src="data:image/png;base64,{{ hues_distribution_combined }}" alt="Análisis de Sombras" class="fullscreen-image">
+                        <img src="data:image/png;base64,{{ hues_distribution_combined2 }}" alt="Análisis por Rangos" class="fullscreen-image">
+                    </div>
+                </div>
+                
+                <!-- Análisis Detallado -->
+                <div class="content-section" id="detailed">
+                    <div class="fullscreen-image-container">
+                        <h3>Análisis Detallado por Luminosidad</h3>
+                        <div class="detailed-grid">
+                            <div class="detail-item">
+                                <h4>Negros (0-10%)</h4>
+                                <img src="data:image/png;base64,{{ negros }}" alt="Análisis de Negros">
+                            </div>
+                            <div class="detail-item">
+                                <h4>Colores en Negros</h4>
+                                <img src="data:image/png;base64,{{ negros2 }}" alt="Colores en Zona Oscura">
+                            </div>
+                            <div class="detail-item">
+                                <h4>Sombras (11-40%)</h4>
+                                <img src="data:image/png;base64,{{ sombras }}" alt="Análisis de Sombras">
+                            </div>
+                            <div class="detail-item">
+                                <h4>Medios Tonos (41-60%)</h4>
+                                <img src="data:image/png;base64,{{ medios_tonos }}" alt="Análisis de Medios Tonos">
+                            </div>
+                            <div class="detail-item">
+                                <h4>Altas Luces (61-89%)</h4>
+                                <img src="data:image/png;base64,{{ altas_luces }}" alt="Análisis de Altas Luces">
+                            </div>
+                            <div class="detail-item">
+                                <h4>Blancos (90-100%)</h4>
+                                <img src="data:image/png;base64,{{ blancos }}" alt="Análisis de Blancos">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Negros -->
+                <div class="content-section" id="negros">
+                    <div class="fullscreen-image-container">
+                        <h3>Análisis de Negros (0-10%)</h3>
+                        <div class="chart-pair">
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-bar me-2"></i>Distribución de HUE</h4>
+                                <img src="data:image/png;base64,{{ negros }}" alt="Distribución de HUE en Negros" class="fullscreen-image">
+                            </div>
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-pie me-2"></i>Colores Dominantes</h4>
+                                <img src="data:image/png;base64,{{ negros_pie }}" alt="Colores Dominantes en Negros" class="fullscreen-image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Sombras -->
+                <div class="content-section" id="sombras">
+                    <div class="fullscreen-image-container">
+                        <h3>Análisis de Sombras (11-40%)</h3>
+                        <div class="chart-pair">
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-bar me-2"></i>Distribución de HUE</h4>
+                                <img src="data:image/png;base64,{{ sombras }}" alt="Distribución de HUE en Sombras" class="fullscreen-image">
+                            </div>
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-pie me-2"></i>Colores Dominantes</h4>
+                                <img src="data:image/png;base64,{{ sombras_pie }}" alt="Colores Dominantes en Sombras" class="fullscreen-image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Medios Tonos -->
+                <div class="content-section" id="medios">
+                    <div class="fullscreen-image-container">
+                        <h3>Análisis de Medios Tonos (41-60%)</h3>
+                        <div class="chart-pair">
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-bar me-2"></i>Distribución de HUE</h4>
+                                <img src="data:image/png;base64,{{ medios_tonos }}" alt="Distribución de HUE en Medios Tonos" class="fullscreen-image">
+                            </div>
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-pie me-2"></i>Colores Dominantes</h4>
+                                <img src="data:image/png;base64,{{ medios_tonos_pie }}" alt="Colores Dominantes en Medios Tonos" class="fullscreen-image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Altas Luces -->
+                <div class="content-section" id="luces">
+                    <div class="fullscreen-image-container">
+                        <h3>Análisis de Altas Luces (61-89%)</h3>
+                        <div class="chart-pair">
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-bar me-2"></i>Distribución de HUE</h4>
+                                <img src="data:image/png;base64,{{ altas_luces }}" alt="Distribución de HUE en Altas Luces" class="fullscreen-image">
+                            </div>
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-pie me-2"></i>Colores Dominantes</h4>
+                                <img src="data:image/png;base64,{{ altas_luces_pie }}" alt="Colores Dominantes en Altas Luces" class="fullscreen-image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Blancos -->
+                <div class="content-section" id="blancos">
+                    <div class="fullscreen-image-container">
+                        <h3>Análisis de Blancos (90-100%)</h3>
+                        <div class="chart-pair">
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-bar me-2"></i>Distribución de HUE</h4>
+                                <img src="data:image/png;base64,{{ blancos }}" alt="Distribución de HUE en Blancos" class="fullscreen-image">
+                            </div>
+                            <div class="chart-item">
+                                <h4><i class="fas fa-chart-pie me-2"></i>Colores Dominantes</h4>
+                                <img src="data:image/png;base64,{{ blancos_pie }}" alt="Colores Dominantes en Blancos" class="fullscreen-image">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Datos de Equipo -->
+        <div class="analysis-card">
+            <div class="card-header">
+                <h3><i class="fas fa-camera me-2"></i>Datos de Equipo</h3>
+                <p class="text-muted mb-0">Información técnica de la captura fotográfica</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="equipment-info">
+                            <div class="info-item">
+                                <i class="fas fa-camera-retro me-2 text-primary"></i>
+                                <span class="info-label">Cámara:</span>
+                                <span class="info-value">{{ exif_data.camera_make }} {{ exif_data.camera_model }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-eye me-2 text-success"></i>
+                                <span class="info-label">Lente:</span>
+                                <span class="info-value">{{ exif_data.lens_model }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-crosshairs me-2 text-warning"></i>
+                                <span class="info-label">Distancia Focal:</span>
+                                <span class="info-value">{{ exif_data.focal_length }}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="equipment-info">
+                            <div class="info-item">
+                                <i class="fas fa-circle me-2 text-info"></i>
+                                <span class="info-label">Apertura:</span>
+                                <span class="info-value">{{ exif_data.f_number }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-lightbulb me-2 text-danger"></i>
+                                <span class="info-label">ISO:</span>
+                                <span class="info-value">{{ exif_data.iso_speed }}</span>
+                            </div>
+                            <div class="info-item">
+                                <i class="fas fa-bolt me-2 text-warning"></i>
+                                <span class="info-label">Flash:</span>
+                                <span class="info-value">{{ exif_data.flash }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <i class="fas fa-tachometer-alt me-2 text-primary"></i>
+                            <span class="info-label">Velocidad:</span>
+                            <span class="info-value">{{ exif_data.shutter_speed }}</span>
+                        </div>
+                    </div>
+                    {% if exif_data.exposure_time != 'No disponible' %}
+                    <div class="col-md-6">
+                        <div class="info-item">
+                            <i class="fas fa-clock me-2 text-secondary"></i>
+                            <span class="info-label">Tiempo de Exposición:</span>
+                            <span class="info-value">{{ exif_data.exposure_time }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Palette Extractor -->
+        <div class="analysis-card">
+            <div class="card-header">
+                <h3><i class="fas fa-palette me-2"></i>Palette Extractor</h3>
+                <p class="text-muted mb-0">Extrae colores dominantes y crea paletas personalizadas</p>
+            </div>
+            <div class="card-body">
+                <!-- Color Principal -->
+                <div class="dominant-color-section mb-4">
+                    <h4><i class="fas fa-star me-2"></i>Color Principal</h4>
+                    <div class="dominant-color-display">
+                        <div class="color-square" id="dominantColorSquare" style="background-color: #000000;"></div>
+                        <div class="color-info-details">
+                            <p><strong>Hex:</strong> <span id="dominantColorHex">#000000</span></p>
+                            <p><strong>RGB:</strong> <span id="dominantColorRGB">0, 0, 0</span></p>
+                            <p><strong>Presencia:</strong> <span id="dominantColorPercentage">0%</span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Controles de Paleta -->
+                <div class="palette-controls mb-4">
+                    <h4><i class="fas fa-sliders-h me-2"></i>Configurar Paleta</h4>
+                    <div class="d-flex justify-content-center align-items-center flex-wrap">
+                        <label for="num_colors" class="me-3">Número de colores:</label>
+                        <select id="num_colors" name="num_colors" class="form-select me-3" style="width: auto;">
+                            <option value="3">3 colores</option>
+                            <option value="5">5 colores</option>
+                            <option value="8" selected>8 colores</option>
+                            <option value="10">10 colores</option>
+                            <option value="12">12 colores</option>
+                            <option value="15">15 colores</option>
+                            <option value="20">20 colores</option>
+                        </select>
+                        <button type="button" id="extract-palette-btn" class="btn-update">
+                            <i class="fas fa-magic me-2"></i>Extraer Paleta
+                        </button>
+                    </div>
+                    <div id="palette-loading" class="loading-indicator" style="display: none;">
+                        <i class="fas fa-spinner fa-spin me-2"></i>Extrayendo paleta...
+                    </div>
+                </div>
+
+                <!-- Colores Secundarios -->
+                <div class="secondary-colors-section mb-4">
+                    <h4><i class="fas fa-paint-brush me-2"></i>Colores Secundarios</h4>
+                    <div id="secondaryColorsGrid" class="secondary-colors-grid">
+                        <!-- Los colores secundarios se cargarán dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Visualizaciones de Paleta -->
+                <div class="palette-visualizations">
+                    <h4><i class="fas fa-chart-area me-2"></i>Visualizaciones de Paleta</h4>
+                    <div id="paletteVisualization" class="chart-container">
+                        <!-- La visualización se cargará dinámicamente -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón de Regreso -->
+        <div class="text-center">
+            <a href="/index" class="btn-back">
+                <i class="fas fa-arrow-left me-2"></i>Subir Nueva Imagen
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Función para actualizar valores de color al hacer clic en la imagen
+        function updateValues(x, y) {
+            var image = document.getElementById('uploadedImage');
+            var rect = image.getBoundingClientRect();
+            
+            // Calcular la posición relativa al contenedor de la imagen
+            var offsetX = x - rect.left;
+            var offsetY = y - rect.top;
+            
+            // Verificar que el cursor esté dentro de la imagen
+            if (offsetX < 0 || offsetX > rect.width || offsetY < 0 || offsetY > rect.height) {
+                return;
+            }
+            
+            // Mostrar crosshair en la posición exacta del cursor
+            var crosshair = document.getElementById('crosshair');
+            crosshair.style.display = 'block';
+            crosshair.style.left = (offsetX - 10) + 'px';
+            crosshair.style.top = (offsetY - 10) + 'px';
+            
+            // Crear canvas para obtener datos del píxel
+            var canvas = document.createElement('canvas');
+            var context = canvas.getContext('2d');
+            canvas.width = image.naturalWidth;
+            canvas.height = image.naturalHeight;
+            context.drawImage(image, 0, 0, image.naturalWidth, image.naturalHeight);
+            
+            // Calcular la posición del píxel en la imagen original
+            var scaleX = image.naturalWidth / rect.width;
+            var scaleY = image.naturalHeight / rect.height;
+            var pixelX = Math.floor(offsetX * scaleX);
+            var pixelY = Math.floor(offsetY * scaleY);
+            
+            // Obtener el color del píxel
+            var pixel = context.getImageData(pixelX, pixelY, 1, 1).data;
+            
+            var r = pixel[0];
+            var g = pixel[1];
+            var b = pixel[2];
+            var hex = rgbToHex(r, g, b);
+            var hsv = rgbToHsv(r, g, b);
+            
+            // Actualizar información de color
+            var colorBox = document.getElementById('colorBox');
+            var colorInfo = document.getElementById('colorInfo');
+            var hueBox = document.getElementById('hueBox');
+            var hueInfo = document.getElementById('hueInfo');
+            
+            colorBox.style.backgroundColor = hex;
+            colorInfo.innerHTML = `
+                <h4>Color RGB</h4>
+                <p><strong>${hex}</strong></p>
+                <p>R: ${r} | G: ${g} | B: ${b}</p>
+            `;
+            
+            hueBox.style.backgroundColor = `hsl(${hsv.h}, 100%, 50%)`;
+            hueInfo.innerHTML = `
+                <h4>Valores HSV</h4>
+                <p><strong>Hue: ${hsv.h.toFixed(1)}°</strong></p>
+                <p>S: ${(hsv.s * 100).toFixed(1)}% | V: ${(hsv.v * 100).toFixed(1)}%</p>
+            `;
+        }
+        
+        function rgbToHex(r, g, b) {
+            return '#' + (1 << 24 | r << 16 | g << 8 | b).toString(16).slice(1).toUpperCase();
+        }
+        
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            var max = Math.max(r, g, b), min = Math.min(r, g, b);
+            var h, s, v = max;
+            var d = max - min;
+            s = max === 0 ? 0 : d / max;
+            
+            if (max === min) {
+                h = 0;
+            } else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return { h: h * 360, s: s, v: v };
+        }
+        
+        function onPointerMove(event) {
+            event.preventDefault();
+            var x, y;
+            
+            if (event.type === 'mousemove') {
+                x = event.clientX;
+                y = event.clientY;
+            } else if (event.type === 'touchmove') {
+                var touch = event.touches[0];
+                x = touch.clientX;
+                y = touch.clientY;
+            }
+            
+            updateValues(x, y);
+        }
+        
+        function onPointerDown(event) {
+            var x, y;
+            
+            if (event.type === 'mousedown') {
+                x = event.clientX;
+                y = event.clientY;
+            } else if (event.type === 'touchstart') {
+                var touch = event.touches[0];
+                x = touch.clientX;
+                y = touch.clientY;
+            }
+            
+            updateValues(x, y);
+        }
+        
+        // Función para actualizar el gráfico de K-means
+        function updateKmeansChart() {
+            const numClusters = document.getElementById('num_clusters').value;
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const updateBtn = document.getElementById('update-clusters-btn');
+            
+            loadingIndicator.style.display = 'inline';
+            updateBtn.disabled = true;
+            
+            fetch('/update_kmeans', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ num_clusters: parseInt(numClusters) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    return;
+                }
+                
+                const kmeansChart = document.getElementById('kmeans-chart');
+                kmeansChart.src = 'data:image/png;base64,' + data.kmeans_chart;
+                
+                const modifiedWheel = document.getElementById('modified-wheel');
+                modifiedWheel.src = data.modified_wheel + '?t=' + new Date().getTime();
+                
+                document.getElementById('num_clusters').value = data.num_clusters;
+                console.log('Gráfico actualizado exitosamente');
+            })
+            .catch(error => {
+                console.error('Error al actualizar:', error);
+                alert('Error al actualizar el gráfico. Por favor, intenta de nuevo.');
+            })
+            .finally(() => {
+                loadingIndicator.style.display = 'none';
+                updateBtn.disabled = false;
+            });
+        }
+        
+        // Función para extraer paleta de colores
+        function extractPalette() {
+            const numColors = document.getElementById('num_colors').value;
+            const loadingIndicator = document.getElementById('palette-loading');
+            const extractBtn = document.getElementById('extract-palette-btn');
+            
+            loadingIndicator.style.display = 'inline';
+            extractBtn.disabled = true;
+            
+            fetch('/extract_palette', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ num_colors: parseInt(numColors) })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    alert('Error al extraer la paleta: ' + data.error);
+                    return;
+                }
+                
+                // Actualizar color principal
+                updateDominantColor(data.dominant_color);
+                
+                // Actualizar colores secundarios
+                updateSecondaryColors(data.secondary_colors);
+                
+                // Actualizar visualización
+                updatePaletteVisualization(data.visualization);
+                
+                console.log('Paleta extraída exitosamente');
+            })
+            .catch(error => {
+                console.error('Error al extraer paleta:', error);
+                alert('Error al extraer la paleta. Por favor, intenta de nuevo.');
+            })
+            .finally(() => {
+                loadingIndicator.style.display = 'none';
+                extractBtn.disabled = false;
+            });
+        }
+        
+        // Función para actualizar el color principal
+        function updateDominantColor(dominantColor) {
+            const colorSquare = document.getElementById('dominantColorSquare');
+            const colorHex = document.getElementById('dominantColorHex');
+            const colorRGB = document.getElementById('dominantColorRGB');
+            const colorPercentage = document.getElementById('dominantColorPercentage');
+            
+            colorSquare.style.backgroundColor = dominantColor.hex;
+            colorHex.textContent = dominantColor.hex;
+            colorRGB.textContent = dominantColor.rgb.join(', ');
+            colorPercentage.textContent = dominantColor.percentage.toFixed(1) + '%';
+        }
+        
+        // Función para actualizar colores secundarios
+        function updateSecondaryColors(secondaryColors) {
+            const grid = document.getElementById('secondaryColorsGrid');
+            grid.innerHTML = '';
+            
+            secondaryColors.forEach((color, index) => {
+                const colorItem = document.createElement('div');
+                colorItem.className = 'secondary-color-item';
+                colorItem.innerHTML = `
+                    <div class="secondary-color-square" style="background-color: ${color.hex};"></div>
+                    <div class="secondary-color-info">
+                        <div class="color-hex">${color.hex}</div>
+                        <div class="color-percentage">${color.percentage.toFixed(1)}%</div>
+                    </div>
+                `;
+                grid.appendChild(colorItem);
+            });
+        }
+        
+        // Función para actualizar la visualización de la paleta
+        function updatePaletteVisualization(visualization) {
+            const container = document.getElementById('paletteVisualization');
+            container.innerHTML = `<img src="data:image/png;base64,${visualization}" alt="Visualización de Paleta" style="max-width: 100%; height: auto; border-radius: 15px; box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);">`;
+        }
+        
+        // Función para manejar la navegación lateral
+        function switchContent(targetId) {
+            // Ocultar todas las secciones
+            const allSections = document.querySelectorAll('.content-section');
+            allSections.forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Mostrar la sección seleccionada
+            const targetSection = document.getElementById(targetId);
+            if (targetSection) {
+                targetSection.classList.add('active');
+            }
+            
+            // Actualizar navegación activa
+            const allNavItems = document.querySelectorAll('.nav-item');
+            allNavItems.forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            const activeNavItem = document.querySelector(`[data-target="${targetId}"]`);
+            if (activeNavItem) {
+                activeNavItem.classList.add('active');
+            }
+        }
+        
+        // Event Listeners
+        window.addEventListener('load', function() {
+            var image = document.getElementById('uploadedImage');
+            
+            // Eventos para mouse
+            image.addEventListener('mousemove', onPointerMove);
+            image.addEventListener('mousedown', onPointerDown);
+            
+            // Eventos para touch (móvil)
+            image.addEventListener('touchmove', onPointerMove, { passive: false });
+            image.addEventListener('touchstart', onPointerDown, { passive: false });
+            
+            // Inicializar en el centro de la imagen
+            var rect = image.getBoundingClientRect();
+            var centerX = rect.left + rect.width / 2;
+            var centerY = rect.top + rect.height / 2;
+            updateValues(centerX, centerY);
+            
+            // Inicializar paleta de colores por defecto si hay datos disponibles
+            {% if palette_data %}
+            if (typeof {{ palette_data|tojson|safe }} !== 'undefined') {
+                const paletteData = {{ palette_data|tojson|safe }};
+                updateDominantColor(paletteData.dominant_color);
+                updateSecondaryColors(paletteData.secondary_colors);
+                updatePaletteVisualization(paletteData.visualization);
+            }
+            {% endif %}
+            
+            // Botón de actualizar clusters
+            const updateBtn = document.getElementById('update-clusters-btn');
+            if (updateBtn) {
+                updateBtn.addEventListener('click', updateKmeansChart);
+            }
+            
+            // Input de clusters con Enter
+            const numClustersInput = document.getElementById('num_clusters');
+            if (numClustersInput) {
+                numClustersInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        updateKmeansChart();
+                    }
+                });
+            }
+            
+            // Botón de extraer paleta
+            const extractBtn = document.getElementById('extract-palette-btn');
+            if (extractBtn) {
+                extractBtn.addEventListener('click', extractPalette);
+            }
+            
+            // Select de número de colores con Enter
+            const numColorsSelect = document.getElementById('num_colors');
+            if (numColorsSelect) {
+                numColorsSelect.addEventListener('change', extractPalette);
+            }
+            
+            // Navegación lateral
+            const navItems = document.querySelectorAll('.nav-item');
+            navItems.forEach(item => {
+                item.addEventListener('click', function() {
+                    const target = this.getAttribute('data-target');
+                    switchContent(target);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
